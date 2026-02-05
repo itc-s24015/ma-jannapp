@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "deploy": "npm i && npm run build",
     "dev": "tsx server/server.ts",
     "build": "next build",
     "start": "NODE_ENV=production node server/dist/server.js"

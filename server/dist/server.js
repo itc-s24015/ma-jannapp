@@ -3,7 +3,7 @@ import { Server } from 'socket.io';
 import next from 'next';
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = "localhost";
-const port = 3000;
+const port = process.env.PORT || 3000;
 const app = next({
     dev,
     hostname,
@@ -41,7 +41,9 @@ app.prepare().then(() => {
                 index = players.length - 1;
             }
             else {
-                players[index].socketId = socket.id;
+                const player = players[index];
+                if (player)
+                    player.socketId = socket.id;
             }
             socket.emit('assigned', index);
             io.to(roomId).emit('playersUpdate', players);
@@ -51,6 +53,8 @@ app.prepare().then(() => {
             if (!currentRoomId)
                 return;
             const players = rooms[currentRoomId];
+            if (!players)
+                return;
             const player = players?.[index];
             if (player?.socketId === socket.id) {
                 player.name = name;
@@ -62,6 +66,8 @@ app.prepare().then(() => {
             if (!currentRoomId)
                 return;
             const players = rooms[currentRoomId];
+            if (!players)
+                return;
             const player = players?.[index];
             if (player?.socketId === socket.id) {
                 player.confirmed = true;
