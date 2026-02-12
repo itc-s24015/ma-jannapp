@@ -63,23 +63,18 @@ app.prepare().then(() => {
         });
         // ===== OK（確定） =====
         socket.on('confirm', (index) => {
-            if (!currentRoomId)
-                return;
-            const players = rooms[currentRoomId];
-            if (!players)
-                return;
-            const player = players?.[index];
-            if (player?.socketId === socket.id) {
-                player.confirmed = true;
-                io.to(currentRoomId).emit('playersUpdate', players);
-                // ★ 全員確定していたらゲーム開始
-                const allConfirmed = players.length === 4 &&
-                    players.every((p) => p.confirmed);
-                if (allConfirmed) {
-                    io.to(currentRoomId).emit('gameStarted');
-                }
-            }
+            if (!currentRoomId) return;
+
+          const player = rooms[currentRoomId]?.[index];
+          if (player?.socketId === socket.id) {
+            player.confirmed = !player.confirmed; // ← ここが肝
+            io.to(currentRoomId).emit(
+              'playersUpdate',
+              rooms[currentRoomId]
+            );
+          }
         });
+
         // ===== 切断 =====
         socket.on('disconnect', () => {
             if (!currentRoomId)

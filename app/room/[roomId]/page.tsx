@@ -21,92 +21,81 @@ export default function RoomPage() {
     if (!socket || !roomId) return;
 
     socket.emit('joinRoom', roomId);
-
-    socket.on('assigned', (index) => {
-      setMyIndex(index);
-    });
-
-    socket.on('playersUpdate', (players) => {
-      setPlayers(players);
-    });
-
+    socket.on('assigned', setMyIndex);
+    socket.on('playersUpdate', setPlayers);
     socket.on('gameStarted', () => {
       router.push(`/game/${roomId}`);
+    });
+    socket.on('playersUpdate', (players) => {
+    setPlayers(players);
     });
 
     return () => {
       socket.off('assigned');
       socket.off('playersUpdate');
       socket.off('gameStarted');
+      socket.off('playersUpdate');
     };
   }, [socket, roomId, router]);
 
   if (!socket) return <div>connecting...</div>;
 
+  const activePlayers = players.filter(p => p.name !== '');
+
   const allConfirmed =
-    players.length === 4 && players.every((p) => p.confirmed);
+    activePlayers.length >= 3 &&
+  activePlayers.every(p => p.confirmed);
+
   const isHost = myIndex === 0;
 
   return (
-    <main style={bgStyle}>
-      <div style={cardStyle}>
-        <h2 style={titleStyle}>参加者</h2>
+    <main style={bg}>
+      <div style={card}>
+        <h2 style={title}>参加者</h2>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div style={list}>
           {players.map((player, index) => {
             const isMe = index === myIndex;
 
             return (
-              <div
-                key={index}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 60px 60px',
-                  gap: 10,
-                  alignItems: 'center',
-                }}
-              >
+              <div key={index} style={row}>
                 <input
-                  value={player.name}
+                  style={{
+                    ...input,
+                    background:
+                      !isMe || player.confirmed ? '#eee' : '#fff',
+                  }}
                   placeholder="名前"
+                  value={player.name}
                   readOnly={!isMe || player.confirmed}
                   onChange={(e) =>
-                    socket.emit('updateName', index, e.currentTarget.value)
+                    socket.emit('updateName', index, e.target.value)
                   }
-                  style={{
-                    ...inputStyle,
-                    background: !isMe || player.confirmed ? '#eee' : '#fff',
-                  }}
                 />
 
-                <input value="¥" readOnly style={inputStyle} />
-
                 <button
-                  disabled={!isMe || player.confirmed || player.name === ''}
-                  onClick={() => socket.emit('confirm', index)}
                   style={{
-                    ...okButtonStyle,
-                    opacity:
-                      !isMe || player.confirmed || player.name === ''
-                        ? 0.4
-                        : 1,
+                  ...ok,
+                  opacity: !isMe || !player.name ? 0.4 : 1,
                   }}
+                  disabled={!isMe || player.name === ''}
+                  onClick={() => socket.emit('confirm', index)}
                 >
-                  ok
+                  {player.confirmed ? 'キャンセル' : 'ok'}
                 </button>
+
               </div>
             );
           })}
         </div>
 
         <button
+          style={{
+            ...start,
+            opacity: !allConfirmed || !isHost ? 0.4 : 1,
+          }}
           disabled={!allConfirmed || !isHost}
           onClick={() => socket.emit('startGame', roomId)}
-          style={{
-            ...startButtonStyle,
-            opacity: !allConfirmed || !isHost ? 0.4 : 1,
-            cursor: !allConfirmed || !isHost ? 'default' : 'pointer',
-          }}
         >
           スタート
         </button>
@@ -117,51 +106,75 @@ export default function RoomPage() {
 
 /* ===== styles ===== */
 
-const bgStyle: React.CSSProperties = {
+const bg: React.CSSProperties = {
   minHeight: '100vh',
   backgroundColor: '#cfe6b8',
   backgroundImage:
-    'radial-gradient(rgba(0,0,0,0.05) 1px, transparent 1px)',
+    'radial-gradient(rgba(0,0,0,0.06) 1px, transparent 1px)',
   backgroundSize: '40px 40px',
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
 };
 
-const cardStyle: React.CSSProperties = {
-  width: 700,
-  padding: 30,
-  backgroundColor: '#dcedc8',
-  borderRadius: 12,
-  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+const card: React.CSSProperties = {
+  width: 720,
+  padding: 32,
+  background: '#dcedc8',
+  borderRadius: 14,
+  boxShadow: '0 6px 14px rgba(0,0,0,0.15)',
 };
 
-const titleStyle: React.CSSProperties = {
+const title: React.CSSProperties = {
   textAlign: 'center',
-  fontSize: 26,
-  marginBottom: 24,
+  fontSize: 28,
+  marginBottom: 26,
 };
 
-const inputStyle: React.CSSProperties = {
-  padding: 10,
+const list: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 16,
+};
+
+const row: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: '1fr 80px 60px',
+  gap: 12,
+  alignItems: 'center',
+};
+
+const input: React.CSSProperties = {
+  padding: '10px 12px',
   fontSize: 16,
-  border: 'none',
   borderRadius: 4,
+  border: 'none',
 };
 
-const okButtonStyle: React.CSSProperties = {
-  padding: '8px 10px',
-  border: 'none',
+const yen: React.CSSProperties = {
+  padding: '10px',
+  fontSize: 16,
   borderRadius: 4,
+  border: 'none',
+  textAlign: 'center',
   background: '#fff',
 };
 
-const startButtonStyle: React.CSSProperties = {
-  marginTop: 24,
-  width: '100%',
-  padding: 12,
-  fontSize: 18,
-  background: '#e0e0e0',
+const ok: React.CSSProperties = {
+  padding: '8px 10px',
+  borderRadius: 4,
   border: 'none',
+  background: '#fff',
+  cursor: 'pointer',
+};
+
+const start: React.CSSProperties = {
+  marginTop: 28,
+  width: '100%',
+  padding: 14,
+  fontSize: 18,
   borderRadius: 6,
+  border: 'none',
+  background: '#e0e0e0',
+  cursor: 'pointer',
 };

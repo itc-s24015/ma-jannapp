@@ -1,15 +1,15 @@
 {
   "name": "server",
-  "version": "1.0.0",
-  "description": "",
-  "license": "ISC",
-  "author": "",
+  "private": true,
   "type": "module",
-  "main": "index.js",
   "scripts": {
-    "build": "rm -rf dist && tsc"
+    "dev": "tsx src/server.ts"
+  },
+  "dependencies": {
+    "socket.io": "^4.7.5"
   },
   "devDependencies": {
-    "typescript": "^5.9.3"
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
   }
 }

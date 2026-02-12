@@ -7,10 +7,9 @@ import type {
   ServerToClientEvents,
 } from '../../server/src/socket-events';
 
-// ★ ここが超重要
 export type TypedSocket = Socket<
-  ServerToClientEvents, // socket.on(...)
-  ClientToServerEvents  // socket.emit(...)
+  ServerToClientEvents,
+  ClientToServerEvents
 >;
 
 const SocketContext = createContext<TypedSocket | null>(null);
@@ -25,7 +24,7 @@ export function SocketProvider({
   const [socket, setSocket] = useState<TypedSocket | null>(null);
 
   useEffect(() => {
-    const s: TypedSocket = io();
+    const s: TypedSocket = io('http://localhost:3001');
     setSocket(s);
 
     return () => {
