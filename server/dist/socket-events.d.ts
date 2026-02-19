@@ -11,7 +11,12 @@ export interface ServerToClientEvents {
     gameStarted: () => void;
 }
 export interface ClientToServerEvents {
-    joinRoom: (roomId: string) => void;
+    joinRoom: (roomId: string, config?: {
+        create?: boolean;
+        playerCount?: number;
+        redDora?: boolean;
+        ryukyoku?: boolean;
+    }) => void;
     updateName: (index: number, name: string) => void;
     confirm: (index: number) => void;
     startGame: (roomId: string) => void;

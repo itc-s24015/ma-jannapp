@@ -1,10 +1,10 @@
 // server/src/server.ts
-import { createServer } from 'http';
-import { Server } from 'socket.io';
+import { createServer } from "http";
+import { Server } from "socket.io";
 import type {
   ServerToClientEvents,
   ClientToServerEvents,
-} from './socket-events.js';
+} from "./socket-events.js";
 
 type Player = {
   socketId: string | null;
@@ -16,65 +16,62 @@ const rooms: Record<string, Player[]> = {};
 
 const httpServer = createServer();
 
-const io = new Server<
-  ClientToServerEvents,
-  ServerToClientEvents
->(httpServer, {
-  cors: { origin: '*' },
+const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
+  cors: { origin: "*" },
 });
 
-io.on('connection', (socket) => {
-  console.log('connected:', socket.id);
+io.on("connection", (socket) => {
+  console.log("connected:", socket.id);
 
   let currentRoomId: string | null = null;
 
-// ===== ルーム参加 =====
-socket.on('joinRoom', (roomId) => {
-  currentRoomId = roomId;
-  socket.join(roomId);
+  // ===== ルーム参加 =====
+  socket.on("joinRoom", (roomId, config?: any) => {
+    currentRoomId = roomId;
+    socket.join(roomId);
 
-  // ルームがなければ4席作る
-  if (!rooms[roomId]) {
-    rooms[roomId] = Array.from({ length: 4 }, () => ({
-      socketId: null,
-      name: '',
-      confirmed: false,
-    }));
-  }
+    const playerCount: number = config?.playerCount ?? 4;
 
-
-  const players = rooms[roomId];
-
-  // ★ 上から順番に空席を探す
-  let index = -1;
-  for (let i = 0; i < players.length; i++) {
-    const p = players[i];
-    if (!p) continue;
-    if (p.socketId === null) {
-      index = i;
-      break;
+    // ルームがなければ指定人数席作る
+    if (!rooms[roomId]) {
+      rooms[roomId] = Array.from({ length: playerCount }, () => ({
+        socketId: null,
+        name: "",
+        confirmed: false,
+      }));
     }
-  }
 
-  if (index === -1) return;
+    const players = rooms[roomId];
 
-  const assigned = players[index];
-  if (!assigned) return;
-  assigned.socketId = socket.id;
+    // ★ 上から順番に空席を探す
+    let index = -1;
+    for (let i = 0; i < players.length; i++) {
+      const p = players[i];
+      if (!p) continue;
+      if (p.socketId === null) {
+        index = i;
+        break;
+      }
+    }
 
-  socket.emit('assigned', index);
-  io.to(roomId).emit(
-    'playersUpdate',
-    rooms[roomId].map(({ name, confirmed }) => ({
-      name,
-      confirmed,
-    }))
-  );
-});
+    if (index === -1) return;
 
+    const assigned = players[index];
+    if (!assigned) return;
+    assigned.socketId = socket.id;
+
+    socket.emit("assigned", index);
+    io.to(roomId).emit(
+      "playersUpdate",
+      rooms[roomId].map(({ name, confirmed }) => ({
+        name,
+        confirmed,
+      })),
+    );
+  });
 
   // ===== 名前更新 =====
-  socket.on('updateName', (index, name) => {
+  socket.on("updateName", (index, name) => {
     if (!currentRoomId) return;
     const players = rooms[currentRoomId];
     if (!players) return;
@@ -82,12 +79,12 @@ socket.on('joinRoom', (roomId) => {
     if (!player) return;
     if (player.socketId === socket.id) {
       player.name = name;
-      io.to(currentRoomId).emit('playersUpdate', players);
+      io.to(currentRoomId).emit("playersUpdate", players);
     }
   });
 
   // ===== 確定 / キャンセル =====
-  socket.on('confirm', (index) => {
+  socket.on("confirm", (index) => {
     if (!currentRoomId) return;
     const players = rooms[currentRoomId];
     if (!players) return;
@@ -95,47 +92,45 @@ socket.on('joinRoom', (roomId) => {
     if (!player) return;
     if (player.socketId === socket.id) {
       player.confirmed = !player.confirmed;
-      io.to(currentRoomId).emit('playersUpdate', players);
+      io.to(currentRoomId).emit("playersUpdate", players);
     }
   });
 
   // ===== 切断 =====
-  socket.on('disconnect', () => {
+  socket.on("disconnect", () => {
     if (!currentRoomId) return;
     const players = rooms[currentRoomId];
     if (!players) return;
-    const player = players.find(
-      (p) => p.socketId === socket.id
-    );
+    const player = players.find((p) => p.socketId === socket.id);
     if (player) {
       player.socketId = null;
-      player.name = '';
+      player.name = "";
       player.confirmed = false;
-      io.to(currentRoomId).emit('playersUpdate', players);
+      io.to(currentRoomId).emit("playersUpdate", players);
     }
   });
   // ===== ゲーム開始 =====
-socket.on('startGame', (roomId) => {
-  const players = rooms[roomId];
-  if (!players) return;
+  socket.on("startGame", (roomId) => {
+    const players = rooms[roomId];
+    if (!players) return;
 
-  // 参加している人数（socketIdあり）
-  const activePlayers = players.filter(p => p.socketId !== null);
+    // 参加している人数（socketIdあり）
+    const activePlayers = players.filter((p) => p.socketId !== null);
 
-  // 3人以上いるか
-  if (activePlayers.length < 3) return;
+    // 3人以上いるか
+    if (activePlayers.length < 3) return;
 
-  // 参加者全員 confirmed しているか
-  const allConfirmed = activePlayers.every(p => p.confirmed);
-  if (!allConfirmed) return;
+    // 参加者全員 confirmed しているか
+    const allConfirmed = activePlayers.every((p) => p.confirmed);
+    if (!allConfirmed) return;
 
-  // ホスト（index 0）のみ開始可能
-  if (players[0]?.socketId !== socket.id) return;
+    // ホスト（index 0）のみ開始可能
+    if (players[0]?.socketId !== socket.id) return;
 
-  io.to(roomId).emit('gameStarted');
+    io.to(roomId).emit("gameStarted");
+  });
 });
-});
 
-httpServer.listen(3001, () => {
-  console.log('Socket.IO running on :3001');
+httpServer.listen(3000, () => {
+  console.log("Socket.IO running on :3000");
 });

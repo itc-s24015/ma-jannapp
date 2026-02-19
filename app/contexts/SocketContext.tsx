@@ -24,7 +24,7 @@ export function SocketProvider({
   const [socket, setSocket] = useState<TypedSocket | null>(null);
 
   useEffect(() => {
-    const s: TypedSocket = io('http://localhost:3001');
+    const s: TypedSocket = io();
     setSocket(s);
 
     return () => {
