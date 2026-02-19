@@ -22,7 +22,7 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
     // Vercelにデプロイしたあとの自分のURLをここに書く
     // 開発中は "*" のままでも動きます
     origin: process.env.NODE_ENV === 'production' 
-      ? "https://ma-jannapp-qc4t.onrender.com" 
+      ? "https://ma-jannapp.vercel.app" 
       : "*",
     methods: ["GET", "POST"]
   },
