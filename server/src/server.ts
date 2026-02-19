@@ -14,13 +14,18 @@ type Player = {
 
 const rooms: Record<string, Player[]> = {};
 
+const PORT = Number(process.env.PORT) || 3001; 
 const httpServer = createServer();
 
-const io = new Server<
-  ClientToServerEvents,
-  ServerToClientEvents
->(httpServer, {
-  cors: { origin: '*' },
+const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
+  cors: {
+    // Vercelにデプロイしたあとの自分のURLをここに書く
+    // 開発中は "*" のままでも動きます
+    origin: process.env.NODE_ENV === 'production' 
+      ? "https://vercel.com/s24017s-projects/ma-jannapp" 
+      : "*",
+    methods: ["GET", "POST"]
+  },
 });
 
 // playersUpdateに渡す用のヘルパー（socketIdを除外）
@@ -121,6 +126,6 @@ io.on('connection', (socket) => {
   });
 });
 
-httpServer.listen(3001, () => {
-  console.log('Socket.IO running on :3001');
+httpServer.listen(PORT, '0.0.0.0', () => {
+  console.log(`Socket.IO running on port ${PORT}`);
 });
