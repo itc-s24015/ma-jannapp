@@ -3,11 +3,16 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSocket } from '../../contexts/SocketContext';
+import MahjongGame from '../../room/[roomId]/Game/MahjongGame';
 
 type Player = {
   name: string;
   confirmed: boolean;
 };
+
+function App() {
+  return <MahjongGame />;
+}
 
 export default function RoomPage() {
   const socket = useSocket();
