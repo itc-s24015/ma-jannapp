@@ -16,6 +16,8 @@ const SocketContext = createContext<TypedSocket | null>(null);
 
 export const useSocket = () => useContext(SocketContext);
 
+const socket = io("https://ma-jannapp-qc4t.onrender.com");
+
 export function SocketProvider({
   children,
 }: {
