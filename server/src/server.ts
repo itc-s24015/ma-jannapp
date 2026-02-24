@@ -75,7 +75,7 @@ io.on("connection", (socket) => {
   });
 
   // ===== 名前更新 =====
-  socket.on("updateName", (index, name) => {
+  socket.on("updateName", (index: number, name: string) => {
     if (!currentRoomId) return;
     const players = rooms[currentRoomId];
     if (!players) return;
@@ -88,7 +88,7 @@ io.on("connection", (socket) => {
   });
 
   // ===== 確定 / キャンセル =====
-  socket.on("confirm", (index) => {
+  socket.on("confirm", (index: number) => {
     if (!currentRoomId) return;
     const players = rooms[currentRoomId];
     if (!players) return;
