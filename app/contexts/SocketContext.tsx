@@ -5,7 +5,7 @@ import { io, Socket } from 'socket.io-client';
 import type {
   ClientToServerEvents,
   ServerToClientEvents,
-} from '../../server/src/socket-events';
+} from '../../lib/socket-events';
 
 export type TypedSocket = Socket<
   ServerToClientEvents,
