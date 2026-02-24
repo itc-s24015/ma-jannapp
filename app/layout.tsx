@@ -1,4 +1,4 @@
-import { SocketProvider } from '../app/contexts/SocketContext';
+import './globals.css';
 
 export default function RootLayout({
   children,
@@ -7,9 +7,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <body>
-        <SocketProvider>{children}</SocketProvider>
-      </body>
+      <body className="bg-black">{children}</body>
     </html>
   );
 }
